@@ -1,0 +1,203 @@
+# Универсум - {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+
+# структура данных "множество как двоичный вектор"
+A_bin = [0, 1, 1, 0, 1, 0, 1, 0, 0, 1]
+
+# структура данных "множество как список значений"
+A = [1, 2, 4, 6, 9]
+
+# преобразует множество из одного представления в другое -
+#  двоичный вектор в список
+def SET_convert_bin_to_list(M_bin):
+    assert(len(M_bin) == 10)
+    M_list = []
+    for i in range(0, 10):
+        if M_bin[i]:
+            M_list.append(i)
+    return M_list
+
+# преобразует множество из одного представления в другое -
+#  список в двоичный вектор
+def SET_convert_list_to_bin(M_list):
+    M_bin = [0] * 10
+    for elem in M_list:
+        M_bin[elem] = 1
+    return M_bin
+
+# возвращает объединение двух множеств, представленных
+#  в виде двоичных векторов
+def SET_bin_union(A, B):
+    result = []
+    for i in range(10):
+        result.append(A[i] or B[i])
+    return result
+
+# возвращает пересечение двух множеств, представленных
+#  в виде двоичных векторов
+def SET_bin_intersection(A, B):
+    result = []
+    for i in range(10):
+        result.append(A[i] and B[i])
+    return result
+
+# возвращает разность двух множеств, представленных
+#  в виде двоичных векторов
+def SET_bin_difference(A, B):
+    result = []
+    for i in range(10):
+        result.append(A[i] and not B[i])
+    return result
+
+# возвращает симметрическую разность двух множеств, представленных
+#  в виде двоичных векторов
+def SET_bin_symm_difference(A, B):
+    result = []
+    for i in range(10):
+        result.append(A[i] ^ B[i])  # XOR
+    return result
+
+def SET_bin_complement(A):
+    result = []
+    for i in range(10):
+        result.append(not A[i])
+    return result
+
+def test_set_operations(A_list, B_list):
+    A_bin = SET_convert_list_to_bin(A_list)
+    B_bin = SET_convert_list_to_bin(B_list)
+    print("Множества:", SET_convert_bin_to_list(A_bin), SET_convert_bin_to_list(B_bin)) 
+    print("Объединение:", SET_convert_bin_to_list(SET_bin_union(A_bin, B_bin)))
+    print("Пересечение:", SET_convert_bin_to_list(SET_bin_intersection(A_bin, B_bin)))
+    print("Разность:", SET_convert_bin_to_list(SET_bin_difference(A_bin, B_bin)))
+    print("Симметрическая разность:", SET_convert_bin_to_list(SET_bin_symm_difference(A_bin, B_bin)))
+    print("Дополнение:", SET_convert_bin_to_list(SET_bin_complement(A_bin)))
+
+# Функции для работы с отношениями
+def is_total_relation(R, students, dishes):
+    """Проверка всюду определенности: у всех ли студентов есть любимые блюда?"""
+    for student in students:
+        found = False
+        for dish in dishes:
+            if R[student][dish]:
+                found = True
+                break
+        if not found:
+            return False
+    return True
+
+def is_functional(R, students, dishes):
+    """Проверка функциональности: у каждого студента не более одного любимого блюда?"""
+    for student in students:
+        count = 0
+        for dish in dishes:
+            if R[student][dish]:
+                count += 1
+        if count > 1:
+            return False
+    return True
+
+def is_surjective(R, students, dishes):
+    """Проверка сюръективности: все ли блюда нравятся хотя бы одному студенту?"""
+    for dish in dishes:
+        found = False
+        for student in students:
+            if R[student][dish]:
+                found = True
+                break
+        if not found:
+            return False
+    return True
+
+def is_injective(R, students, dishes):
+    """Проверка инъективности: двум разным студентам не может нравиться одно и то же блюдо?"""
+    for dish in dishes:
+        count = 0
+        for student in students:
+            if R[student][dish]:
+                count += 1
+        if count > 1:
+            return False
+    return True
+
+def is_bijective(R, students, dishes):
+    """Проверка биективности: взаимно однозначное соответствие"""
+    return (is_functional(R, students, dishes) and 
+            is_injective(R, students, dishes) and 
+            len(students) == len(dishes))
+
+def composition(R, S, students, dishes, products):
+    """Суперпозиция отношений R ∘ S"""
+    result = []
+    for student in students:
+        row = []
+        for product in products:
+            # Студенту нравится продукт, если есть блюдо, которое:
+            # 1) нравится студенту (R[student][dish] == 1)
+            # 2) для приготовления нужно этот продукт (S[dish][product] == 1)
+            found = False
+            for dish in dishes:
+                if R[student][dish] and S[dish][product]:
+                    found = True
+                    break
+            row.append(1 if found else 0)
+        result.append(row)
+    return result
+
+# Пример использования
+if __name__ == "__main__":
+    # Задаем отношение R: студенты -> блюда
+    # Пусть студенты: 0, 1, 2; блюда: 0, 1, 2, 3
+    students_R = [0, 1, 2]
+    dishes_R = [0, 1, 2, 3]
+    R = [
+        [1, 0, 1, 0],  # студент 0 любит блюда 0 и 2
+        [0, 1, 0, 1],  # студент 1 любит блюда 1 и 3
+        [1, 1, 0, 0]   # студент 2 любит блюда 0 и 1
+    ]
+    
+    # Задаем отношение S: блюда -> продукты
+    # Пусть блюда: 0, 1, 2, 3; продукты: 0, 1, 2, 3, 4
+    dishes_S = [0, 1, 2, 3]
+    products_S = [0, 1, 2, 3, 4]
+    S = [
+        [1, 1, 0, 0, 0],  # для блюда 0 нужны продукты 0 и 1
+        [0, 1, 1, 0, 0],  # для блюда 1 нужны продукты 1 и 2
+        [0, 0, 1, 1, 0],  # для блюда 2 нужны продукты 2 и 3
+        [0, 0, 0, 1, 1]   # для блюда 3 нужны продукты 3 и 4
+    ]
+    
+    print("Отношение R:")
+    print("Студенты:", students_R)
+    print("Блюда:", dishes_R)
+    for i, row in enumerate(R):
+        print(f"Студент {i}:", [dishes_R[j] for j, val in enumerate(row) if val])
+    
+    print("\nОтношение S:")
+    print("Блюда:", dishes_S)
+    print("Продукты:", products_S)
+    for i, row in enumerate(S):
+        print(f"Блюдо {i}:", [products_S[j] for j, val in enumerate(row) if val])
+    
+    # Проверка свойств отношения R
+    print("\nСвойства отношения R:")
+    print(f"Всюду определенность: {is_total_relation(R, students_R, dishes_R)}")
+    print(f"Функциональность: {is_functional(R, students_R, dishes_R)}")
+    print(f"Сюръективность: {is_surjective(R, students_R, dishes_R)}")
+    print(f"Инъективность: {is_injective(R, students_R, dishes_R)}")
+    print(f"Биективность: {is_bijective(R, students_R, dishes_R)}")
+    
+    # Суперпозиция отношений
+    comp = composition(R, S, students_R, dishes_R, products_S)
+    print("\nСуперпозиция R ∘ S:")
+    print("Студенты:", students_R)
+    print("Продукты:", products_S)
+    for i, row in enumerate(comp):
+        print(f"Студент {i}:", [products_S[j] for j, val in enumerate(row) if val])
+
+print(SET_convert_bin_to_list(A_bin))
+print(SET_convert_list_to_bin(A))
+
+# тестирование
+A = [4, 5, 3, 1, 9]
+B = [1, 2, 3, 4, 5]
+test_set_operations(A, B)
